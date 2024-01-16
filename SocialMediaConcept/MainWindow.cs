@@ -1,8 +1,12 @@
-﻿using System;
+﻿using SocialMediaConcept.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,42 +18,39 @@ namespace SocialMediaConcept
     public partial class MainWindow : Form
     {
         int CurrentLikeButton = 0;
-
+        int PostCharLimit = 80;
 
         public MainWindow(string loginUsername)
         {
             InitializeComponent();
 
             // Setting up settings
-
             ImageUploader.AllowDrop = true;
             ImageUploader.SizeMode = PictureBoxSizeMode.StretchImage;
             TimelinePanel.VerticalScroll.Enabled = true;
+            PostCharLimit = 80;
+
+            // Setting up Textboxs
+            CharLimitLB.Text = PostCharLimit.ToString();
+
+
+            // Setting up the posts
+            GetUserPosts();
+
+
         }
+
+        private void GetUserPosts()
+        {
+            // Loads the users posts on the timeline 
+
+        }
+
 
         private void PostBTN_Click(object sender, EventArgs e)
         {
+            PostCharLimit = 80;
             CreatePostPanel.Visible = true;
-
-
-            // Size of Post : 295, 202
-            Panel panel = new Panel();
-            panel.BackColor = Color.White;
-            panel.Size = new Size(260, 202);
-
-            Button LikeButton = new Button();
-            LikeButton.BackColor = Color.HotPink;
-            LikeButton.Text = "Like";
-            LikeButton.Size = new Size(75, 50);
-            LikeButton.Location = new(180, 135);
-
-
-            panel.Controls.Add(LikeButton);
-            TimelinePanel.Controls.Add(panel);
-
-        }
-        private void TimelinePanel_MouseHover(object sender, EventArgs e)
-        {
         }
 
         Image img;
@@ -72,7 +73,6 @@ namespace SocialMediaConcept
 
                         ErrorImagePB.Visible = false;
                         ErrorLB.Visible = false;
-
 
                         // This should be added to Post_Click to add Images added. 
                         //Label NameOfImageLB = new Label();
@@ -105,8 +105,115 @@ namespace SocialMediaConcept
         }
         private void CreateCloseBTN_Click(object sender, EventArgs e)
         {
+            PostCharLimit = 80;
+            CharLimitLB.Text = PostCharLimit.ToString();
             CreatePostPanel.Visible = false;
             ImageUploader.Image = null;
+            CreateTitlePostTB.Text = null;
+        }
+
+        private void SharePostBTN_Click(object sender, EventArgs e)
+        {
+            PostCharLimit = 80;
+            CharLimitLB.Text = PostCharLimit.ToString();
+            string TextInputted = CreateTitlePostTB.Text;
+
+
+            // Size of Post : 295, 202
+            Panel panel = new Panel();
+            panel.BackColor = Color.White;
+            panel.Size = new Size(260, 202);
+
+
+            // Like button
+            Button LikeButton = new Button();
+            LikeButton.BackColor = Color.HotPink;
+            LikeButton.Text = "Like";
+            LikeButton.Size = new Size(30, 30);
+            LikeButton.Location = new(215, 125);
+
+
+            // Title 
+            Label Title = new Label();
+            Title.Text = TextInputted;
+            Title.Location = new(9, 135);
+            Title.Size = new(196, 57);
+
+            // PictureBox
+            PictureBox pictureBox = new PictureBox();
+            pictureBox.Location = new(5, 5);
+            pictureBox.Size = new Size(205, 125);
+            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox.Image = Image.FromFile("C:\\Users\\user\\Desktop\\Coding part2\\SocialMediaConcept\\SocialMediaConcept\\Resources\\Satsudou.PNG");
+
+
+
+            panel.Controls.Add(LikeButton);
+            panel.Controls.Add(pictureBox);
+            panel.Controls.Add(Title);
+            TimelinePanel.Controls.Add(panel);
+
+        }
+
+        private void TimelinePanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+        private void CreateTitlePostTB_KeyDown(object sender, KeyEventArgs e)
+        {
+
+            if (e.KeyCode == Keys.Back && String.IsNullOrEmpty(CreateTitlePostTB.Text))
+            {
+                MessageBox.Show("No :" + CreateTitlePostTB.Text.Length.ToString());
+            }
+            else if (e.KeyCode == Keys.Back && CreateTitlePostTB.Text.Length > 0)
+            {
+                PostCharLimit += 1;
+                CharLimitLB.Text = PostCharLimit.ToString();
+            }
+            else
+            {
+                if (PostCharLimit <= 0)
+                {
+
+                }
+                else
+                {
+                    PostCharLimit -= 1;
+                    CharLimitLB.Text = PostCharLimit.ToString();
+                }
+
+            }
+        }
+
+
+        // When characters are selected and then deleted.
+        private void CreateTitlePostTB_KeyUp(object sender, KeyEventArgs e)
+        {
+            //if (e.KeyCode == Keys.Back && CreateTitlePostTB.SelectionLength > 0)
+            //{
+            //    int SelectedDelLength = CreateTitlePostTB.SelectionLength;
+            //    PostCharLimit += SelectedDelLength;
+            //}
+        }
+
+        private void CreateTitlePostTB_KeyPress_1(object sender, KeyPressEventArgs e)
+        {
+            //if (e.KeyChar == '\b' && CreateTitlePostTB.SelectedText.Length > 0)
+            //{
+            //    int SelectedDelLength = CreateTitlePostTB.SelectionLength;
+            //    PostCharLimit += SelectedDelLength;
+            //}
+        }
+
+        private void CreateTitlePostTB_SelectionChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void CreateTitlePostTB_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

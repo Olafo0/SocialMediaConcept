@@ -31,12 +31,17 @@
             TimelinePanel = new FlowLayoutPanel();
             PostBTN = new Button();
             CreatePostPanel = new Panel();
+            CharLimitLB = new Label();
+            label4 = new Label();
+            CreateTitlePostTB = new RichTextBox();
+            label3 = new Label();
+            SharePostBTN = new Button();
+            label2 = new Label();
             ErrorImagePB = new PictureBox();
             ErrorLB = new Label();
             CreateCloseBTN = new Button();
             ImageUploader = new PictureBox();
             label1 = new Label();
-            label2 = new Label();
             CreatePostPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)ErrorImagePB).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ImageUploader).BeginInit();
@@ -50,8 +55,9 @@
             TimelinePanel.BackColor = SystemColors.Info;
             TimelinePanel.Location = new Point(376, 12);
             TimelinePanel.Name = "TimelinePanel";
-            TimelinePanel.Size = new Size(315, 426);
+            TimelinePanel.Size = new Size(281, 426);
             TimelinePanel.TabIndex = 0;
+            TimelinePanel.Paint += TimelinePanel_Paint;
             // 
             // PostBTN
             // 
@@ -68,17 +74,85 @@
             // CreatePostPanel
             // 
             CreatePostPanel.BackColor = SystemColors.AppWorkspace;
+            CreatePostPanel.Controls.Add(CharLimitLB);
+            CreatePostPanel.Controls.Add(label4);
+            CreatePostPanel.Controls.Add(CreateTitlePostTB);
+            CreatePostPanel.Controls.Add(label3);
+            CreatePostPanel.Controls.Add(SharePostBTN);
             CreatePostPanel.Controls.Add(label2);
             CreatePostPanel.Controls.Add(ErrorImagePB);
             CreatePostPanel.Controls.Add(ErrorLB);
             CreatePostPanel.Controls.Add(CreateCloseBTN);
             CreatePostPanel.Controls.Add(ImageUploader);
             CreatePostPanel.Controls.Add(label1);
-            CreatePostPanel.Location = new Point(176, 5);
+            CreatePostPanel.Location = new Point(158, -1);
             CreatePostPanel.Name = "CreatePostPanel";
             CreatePostPanel.Size = new Size(515, 439);
             CreatePostPanel.TabIndex = 2;
             CreatePostPanel.Visible = false;
+            // 
+            // CharLimitLB
+            // 
+            CharLimitLB.AutoSize = true;
+            CharLimitLB.Font = new Font("Yu Gothic UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point);
+            CharLimitLB.ForeColor = SystemColors.ControlText;
+            CharLimitLB.Location = new Point(160, 369);
+            CharLimitLB.Name = "CharLimitLB";
+            CharLimitLB.Size = new Size(12, 13);
+            CharLimitLB.TabIndex = 11;
+            CharLimitLB.Text = "x";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Font = new Font("Yu Gothic UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point);
+            label4.Location = new Point(19, 369);
+            label4.Name = "label4";
+            label4.Size = new Size(117, 13);
+            label4.TabIndex = 10;
+            label4.Text = "Characters remaining :";
+            // 
+            // CreateTitlePostTB
+            // 
+            CreateTitlePostTB.Location = new Point(19, 309);
+            CreateTitlePostTB.MaxLength = 80;
+            CreateTitlePostTB.Name = "CreateTitlePostTB";
+            CreateTitlePostTB.Size = new Size(196, 57);
+            CreateTitlePostTB.TabIndex = 9;
+            CreateTitlePostTB.Text = "";
+            CreateTitlePostTB.SelectionChanged += CreateTitlePostTB_SelectionChanged;
+            CreateTitlePostTB.TextChanged += CreateTitlePostTB_TextChanged;
+            CreateTitlePostTB.KeyDown += CreateTitlePostTB_KeyDown;
+            CreateTitlePostTB.KeyPress += CreateTitlePostTB_KeyPress_1;
+            CreateTitlePostTB.KeyUp += CreateTitlePostTB_KeyUp;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(19, 291);
+            label3.Name = "label3";
+            label3.Size = new Size(29, 15);
+            label3.TabIndex = 8;
+            label3.Text = "Title";
+            // 
+            // SharePostBTN
+            // 
+            SharePostBTN.Location = new Point(421, 397);
+            SharePostBTN.Name = "SharePostBTN";
+            SharePostBTN.Size = new Size(64, 26);
+            SharePostBTN.TabIndex = 6;
+            SharePostBTN.Text = "Post";
+            SharePostBTN.UseVisualStyleBackColor = true;
+            SharePostBTN.Click += SharePostBTN_Click;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(328, 48);
+            label2.Name = "label2";
+            label2.Size = new Size(78, 15);
+            label2.TabIndex = 5;
+            label2.Text = "Image added ";
             // 
             // ErrorImagePB
             // 
@@ -132,15 +206,6 @@
             label1.TabIndex = 0;
             label1.Text = "Create your post";
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(326, 48);
-            label2.Name = "label2";
-            label2.Size = new Size(78, 15);
-            label2.TabIndex = 5;
-            label2.Text = "Image added ";
-            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -171,5 +236,11 @@
         private PictureBox ErrorImagePB;
         private Label ErrorLB;
         private Label label2;
+        private Label label3;
+        private Button SharePostBTN;
+        private RichTextBox CreateTitlePostTB;
+        private Label label4;
+        private Label label5;
+        private Label CharLimitLB;
     }
 }
