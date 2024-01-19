@@ -8,7 +8,7 @@ namespace SocialMediaConcept
 {
     public class UserPosts
     {
-        public int  PostID { get; set; }
+        public int?  PostID { get; set; }
         public int UserID { get; set; }
         public byte[] PostPicture { get; set; }
         public string PostTitle { get; set; }   
@@ -16,7 +16,7 @@ namespace SocialMediaConcept
         public int Likes { get; set; }
         public DateTime DatePosted { get; set; }
 
-        public UserPosts(int PostID, int UserID, byte[] PostPicture, string PostTitle, string Descripition, int Likes, DateTime DatePosted)
+        public UserPosts(int? PostID, int UserID, byte[] PostPicture, string PostTitle, string Descripition, int Likes, DateTime DatePosted)
         {
             this.PostID = PostID;
             this.UserID = UserID;   

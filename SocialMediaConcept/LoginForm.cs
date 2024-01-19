@@ -1,4 +1,5 @@
 using System.CodeDom.Compiler;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
@@ -10,11 +11,7 @@ namespace SocialMediaConcept
 {
     public partial class LoginForm : Form
     {
-        string connectionString = "Data Source=DESKTOP-DNB9KRF;Initial Catalog=SocialMediaConcept;Integrated Security=True;";
-               
-        //SqlConnection cnn;
-        //SqlCommand cmd;
-
+        string connectionString = ConfigurationManager.AppSettings["connectionString"];
         public LoginForm()
         {
             InitializeComponent();
