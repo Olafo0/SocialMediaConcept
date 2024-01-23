@@ -42,6 +42,7 @@
             CreateCloseBTN = new Button();
             ImageUploader = new PictureBox();
             label1 = new Label();
+            RefreshFeedBTN = new Button();
             CreatePostPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)ErrorImagePB).BeginInit();
             ((System.ComponentModel.ISupportInitialize)ImageUploader).BeginInit();
@@ -63,7 +64,7 @@
             // 
             PostBTN.BackColor = Color.DodgerBlue;
             PostBTN.FlatStyle = FlatStyle.Flat;
-            PostBTN.Location = new Point(697, 12);
+            PostBTN.Location = new Point(663, 12);
             PostBTN.Name = "PostBTN";
             PostBTN.Size = new Size(77, 35);
             PostBTN.TabIndex = 1;
@@ -85,7 +86,7 @@
             CreatePostPanel.Controls.Add(CreateCloseBTN);
             CreatePostPanel.Controls.Add(ImageUploader);
             CreatePostPanel.Controls.Add(label1);
-            CreatePostPanel.Location = new Point(158, -1);
+            CreatePostPanel.Location = new Point(141, 6);
             CreatePostPanel.Name = "CreatePostPanel";
             CreatePostPanel.Size = new Size(515, 439);
             CreatePostPanel.TabIndex = 2;
@@ -206,11 +207,22 @@
             label1.TabIndex = 0;
             label1.Text = "Create your post";
             // 
+            // RefreshFeedBTN
+            // 
+            RefreshFeedBTN.Location = new Point(663, 53);
+            RefreshFeedBTN.Name = "RefreshFeedBTN";
+            RefreshFeedBTN.Size = new Size(75, 23);
+            RefreshFeedBTN.TabIndex = 3;
+            RefreshFeedBTN.Text = "Refresh";
+            RefreshFeedBTN.UseVisualStyleBackColor = true;
+            RefreshFeedBTN.Click += RefreshFeedBTN_Click;
+            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(RefreshFeedBTN);
             Controls.Add(CreatePostPanel);
             Controls.Add(PostBTN);
             Controls.Add(TimelinePanel);
@@ -242,5 +254,6 @@
         private Label label4;
         private Label label5;
         private Label CharLimitLB;
+        private Button RefreshFeedBTN;
     }
 }

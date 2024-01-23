@@ -11,6 +11,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -29,7 +30,7 @@ namespace SocialMediaConcept
 
         int CurrentLikeButton = 0;
         int PostCharLimit = 80;
-
+        List<UserPosts> AllPosts = new List<UserPosts>();
         public MainWindow(string loginUsername)
         {
             InitializeComponent();
@@ -39,6 +40,7 @@ namespace SocialMediaConcept
             ImageUploader.SizeMode = PictureBoxSizeMode.StretchImage;
             TimelinePanel.VerticalScroll.Enabled = true;
             PostCharLimit = 80;
+
 
             // Setting up Textboxs
             CharLimitLB.Text = PostCharLimit.ToString();
@@ -52,6 +54,9 @@ namespace SocialMediaConcept
 
             // Setting up the posts
             PostInitilizer();
+
+
+            MessageBox.Show(AllPosts[AllPosts.Count-1].PostID.ToString());
         }
 
         private void SettingUpUser(string LoggedUser)
@@ -89,6 +94,8 @@ namespace SocialMediaConcept
                             CurrentLoggedUser = NewUser;
                         }
                     }
+                    cmd.Dispose();
+                    cnn.Close();
 
                 }
             }
@@ -113,11 +120,10 @@ namespace SocialMediaConcept
         }
 
 
-        List<UserPosts> AllPosts = new List<UserPosts>();
+
         private void GetUserPosts()
         {
             // Loads the users posts on the timeline 
-            MessageBox.Show("E");
 
             using (SqlConnection cnn = new SqlConnection(connectionString))
             {
@@ -142,16 +148,18 @@ namespace SocialMediaConcept
                             AllPosts.Add(TempPost);
                         }
                     }
-                }
+                    cmd.Dispose();
+                    cnn.Close();
+                } 
             }
         }
 
         private void SharePostsToTimeline()
         {
-            foreach(var post in AllPosts)
+            for (int i = AllPosts.Count - 1; i >= 0; i--)
             {
                 CharLimitLB.Text = PostCharLimit.ToString();
-                string TextInputted = post.PostTitle;
+                string TextInputted = AllPosts[i].PostTitle;
 
 
                 // Size of Post : 295, 202
@@ -176,7 +184,7 @@ namespace SocialMediaConcept
 
 
                 // Making the byte into an image. 
-                MemoryStream ms = new MemoryStream(post.PostPicture);
+                MemoryStream ms = new MemoryStream(AllPosts[i].PostPicture);
                 Image ConvertedImage = Image.FromStream(ms);
 
                 // PictureBox
@@ -204,7 +212,7 @@ namespace SocialMediaConcept
         }
 
         Image ImageUploadedToPost;
-        
+
         private void ImageUploader_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -259,7 +267,7 @@ namespace SocialMediaConcept
             CreateTitlePostTB.Text = null;
             NameOfImageLB.Text = null;
             ErrorLB.Visible = false;
-            ErrorImagePB.Visible = false; 
+            ErrorImagePB.Visible = false;
         }
 
         private void SharePostBTN_Click(object sender, EventArgs e)
@@ -295,7 +303,7 @@ namespace SocialMediaConcept
             pictureBox.Size = new Size(205, 125);
             pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox.BorderStyle = BorderStyle.Fixed3D;
-            pictureBox.Image = ImageUploadedToPost; 
+            pictureBox.Image = ImageUploadedToPost;
 
 
 
@@ -304,7 +312,7 @@ namespace SocialMediaConcept
             panel.Controls.Add(pictureBox);
             panel.Controls.Add(Title);
             TimelinePanel.Controls.Add(panel);
-
+            TimelinePanel.Controls.SetChildIndex(panel, 0);
             // Uploading the Post to the database.
             // Making the image into a MemoryStream
             byte[] ImageDataUploaded;
@@ -312,9 +320,8 @@ namespace SocialMediaConcept
             MemoryStream ms = new MemoryStream();
             ImageUploadedToPost.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
             ImageDataUploaded = ms.ToArray();
-            
 
-            UserPosts newPost = new UserPosts(null, CurrentLoggedUser.UserID,ImageDataUploaded,CreateTitlePostTB.Text,"",0,DateTime.Now);
+            UserPosts newPost = new UserPosts(null, CurrentLoggedUser.UserID, ImageDataUploaded, CreateTitlePostTB.Text, "", 0, DateTime.Now);
 
             using (SqlConnection cnn = new SqlConnection(connectionString))
             {
@@ -334,9 +341,41 @@ namespace SocialMediaConcept
 
                     cmd.ExecuteNonQuery();
                     cmd.Dispose();
-                    cnn.Close();
+
                 }
+
+                using (SqlCommand cmd = new SqlCommand("PostIDReturn", cnn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@GivenUserID", newPost.UserID);
+                    cmd.Parameters.AddWithValue("@GivenPostPicture", newPost.PostPicture);
+                    cmd.Parameters.AddWithValue("@GivenPostTitle", newPost.PostTitle);
+                    cmd.Parameters.AddWithValue("@GivenDatePosted", newPost.DatePosted);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int RetreivedPostID = int.Parse(reader["PostID"].ToString());
+
+                            UserPosts TempPost = new UserPosts(RetreivedPostID, newPost.UserID, newPost.PostPicture, newPost.PostTitle, "", 0, newPost.DatePosted);
+                            MessageBox.Show("Shared The Post" + TempPost.PostID);
+                            foreach(var eee in AllPosts)
+                            {
+                                Console.WriteLine(eee.ToString());
+                            }
+                            AllPosts.Add(TempPost);
+                        }
+                    }
+                }
+
+
+                cnn.Close();
             };
+
+            AllPosts.Add(newPost);
+
 
             CreateCloseBTN_Click(null, null);
         }
@@ -399,6 +438,100 @@ namespace SocialMediaConcept
         private void CreateTitlePostTB_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+
+        private void ShareUserPostToTimeline(UserPosts Posts)
+        {
+            string TextInputted = Posts.PostTitle;
+
+
+            // Size of Post : 295, 202
+            Panel panel = new Panel();
+            panel.BackColor = Color.White;
+            panel.Size = new Size(260, 202);
+
+
+            // Like button
+            Button LikeButton = new Button();
+            LikeButton.BackColor = Color.HotPink;
+            LikeButton.Text = "Like";
+            LikeButton.Size = new Size(30, 30);
+            LikeButton.Location = new(215, 125);
+
+
+            // Title 
+            Label Title = new Label();
+            Title.Text = TextInputted;
+            Title.Location = new(9, 135);
+            Title.Size = new(196, 57);
+
+            // Making the byte into an image. 
+            MemoryStream ms = new MemoryStream(Posts.PostPicture);
+            Image ConvertedImage = Image.FromStream(ms);
+
+            // PictureBox
+            PictureBox pictureBox = new PictureBox();
+            pictureBox.Location = new(5, 5);
+            pictureBox.Size = new Size(205, 125);
+            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox.BorderStyle = BorderStyle.Fixed3D;
+            pictureBox.Image = ConvertedImage;
+
+            panel.Controls.Add(LikeButton);
+            panel.Controls.Add(pictureBox);
+            panel.Controls.Add(Title);
+            TimelinePanel.Controls.Add(panel);
+            TimelinePanel.Controls.SetChildIndex(panel, 0);
+        }
+
+        private void RefreshFeedBTN_Click(object sender, EventArgs e)
+        { 
+            DateTime LatestPost = AllPosts[AllPosts.Count-1].DatePosted;
+
+            using (SqlConnection cnn = new SqlConnection(connectionString))
+            {
+                cnn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("RefreshedTimeLine", cnn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@DateGiven", LatestPost);
+
+
+                    using(SqlDataReader reader =cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int? PostID = int.Parse(reader["PostID"].ToString());
+                            int UserID = int.Parse(reader["UserID"].ToString());
+                            byte[] PostPicture = (byte[])reader["PostPicture"];
+                            string PostTitle = reader["PostTitle"].ToString();
+                            int Likes = int.Parse(reader["Likes"].ToString());
+                            DateTime DatePosted = Convert.ToDateTime(reader["DatePosted"]);
+
+
+                            
+                            UserPosts TempPost = new UserPosts(PostID, UserID, PostPicture, PostTitle, null, Likes, DatePosted);
+                            MessageBox.Show($"{TempPost.PostID} == {AllPosts[AllPosts.Count - 1].PostID}");
+                            if (TempPost.PostID == AllPosts[AllPosts.Count-1].PostID)
+                            {
+                                MessageBox.Show("You already know");
+                            }
+                            else
+                            {
+                                MessageBox.Show("MHH");
+                                ShareUserPostToTimeline(TempPost);
+                                AllPosts.Add(TempPost);
+                            }
+
+                        }
+
+                    }
+                    cmd.Dispose();
+                    cnn.Close();
+                }
+            }
         }
     }
 }
