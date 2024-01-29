@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace SocialMediaConcept
 {
@@ -117,9 +118,15 @@ namespace SocialMediaConcept
         {
             GetUserPosts();
             SharePostsToTimeline();
+            Thread.Sleep(1000);
+            autoUpdateTimeline();
         }
 
+        private void autoUpdateTimeline()
+        {
 
+            System.Threading.Timer timer = new System.Threading.Timer(refreshTimeline,null, 0, 10000);
+        }
 
         private void GetUserPosts()
         {
@@ -174,6 +181,9 @@ namespace SocialMediaConcept
                 LikeButton.Text = "Like";
                 LikeButton.Size = new Size(30, 30);
                 LikeButton.Location = new(215, 125);
+                int? PostID = AllPosts[i].PostID;
+                LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, PostID);
+
 
 
                 // Title 
@@ -270,6 +280,26 @@ namespace SocialMediaConcept
             ErrorImagePB.Visible = false;
         }
 
+
+        private void LikeButton_Click(object? sender, EventArgs e, int? PostID)
+        {
+            MessageBox.Show(PostID.ToString());
+            using (SqlConnection cnn = new SqlConnection(connectionString))
+            {
+                cnn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("PostLiked", cnn))
+                {
+
+                }
+            }
+        }
+
+
+
+
+        // Getting the PostID This is temp and will change everytime a new post is uploaded
+        int RetreivedPostID;
         private void SharePostBTN_Click(object sender, EventArgs e)
         {
             PostCharLimit = 80;
@@ -308,11 +338,6 @@ namespace SocialMediaConcept
 
 
             // get image from drop and upload it to the picturebox and make it into a MemeoryStream
-            panel.Controls.Add(LikeButton);
-            panel.Controls.Add(pictureBox);
-            panel.Controls.Add(Title);
-            TimelinePanel.Controls.Add(panel);
-            TimelinePanel.Controls.SetChildIndex(panel, 0);
             // Uploading the Post to the database.
             // Making the image into a MemoryStream
             byte[] ImageDataUploaded;
@@ -320,7 +345,6 @@ namespace SocialMediaConcept
             MemoryStream ms = new MemoryStream();
             ImageUploadedToPost.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
             ImageDataUploaded = ms.ToArray();
-
             UserPosts newPost = new UserPosts(null, CurrentLoggedUser.UserID, ImageDataUploaded, CreateTitlePostTB.Text, "", 0, DateTime.Now);
 
             using (SqlConnection cnn = new SqlConnection(connectionString))
@@ -353,14 +377,15 @@ namespace SocialMediaConcept
                     cmd.Parameters.AddWithValue("@GivenPostTitle", newPost.PostTitle);
                     cmd.Parameters.AddWithValue("@GivenDatePosted", newPost.DatePosted);
 
+
+                    // Update the List 
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            int RetreivedPostID = int.Parse(reader["PostID"].ToString());
+                            RetreivedPostID = int.Parse(reader["PostID"].ToString());
 
                             UserPosts TempPost = new UserPosts(RetreivedPostID, newPost.UserID, newPost.PostPicture, newPost.PostTitle, "", 0, newPost.DatePosted);
-                            MessageBox.Show("Shared The Post" + TempPost.PostID);
                             foreach(var eee in AllPosts)
                             {
                                 Console.WriteLine(eee.ToString());
@@ -369,14 +394,19 @@ namespace SocialMediaConcept
                         }
                     }
                 }
-
-
                 cnn.Close();
             };
 
+            LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, RetreivedPostID);
+
+
+            panel.Controls.Add(LikeButton);
+            panel.Controls.Add(pictureBox);
+            panel.Controls.Add(Title);
+            TimelinePanel.Controls.Add(panel);
+            TimelinePanel.Controls.SetChildIndex(panel, 0);
+
             AllPosts.Add(newPost);
-
-
             CreateCloseBTN_Click(null, null);
         }
 
@@ -458,6 +488,8 @@ namespace SocialMediaConcept
             LikeButton.Text = "Like";
             LikeButton.Size = new Size(30, 30);
             LikeButton.Location = new(215, 125);
+            LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, Posts.PostID);
+
 
 
             // Title 
@@ -485,9 +517,9 @@ namespace SocialMediaConcept
             TimelinePanel.Controls.SetChildIndex(panel, 0);
         }
 
-        private void RefreshFeedBTN_Click(object sender, EventArgs e)
-        { 
-            DateTime LatestPost = AllPosts[AllPosts.Count-1].DatePosted;
+        private void refreshTimeline(object state)
+        {
+            DateTime LatestPost = AllPosts[AllPosts.Count - 1].DatePosted;
 
             using (SqlConnection cnn = new SqlConnection(connectionString))
             {
@@ -499,7 +531,7 @@ namespace SocialMediaConcept
                     cmd.Parameters.AddWithValue("@DateGiven", LatestPost);
 
 
-                    using(SqlDataReader reader =cmd.ExecuteReader())
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
@@ -511,10 +543,10 @@ namespace SocialMediaConcept
                             DateTime DatePosted = Convert.ToDateTime(reader["DatePosted"]);
 
 
-                            
+
                             UserPosts TempPost = new UserPosts(PostID, UserID, PostPicture, PostTitle, null, Likes, DatePosted);
-                            MessageBox.Show($"{TempPost.PostID} == {AllPosts[AllPosts.Count - 1].PostID}");
-                            if (TempPost.PostID == AllPosts[AllPosts.Count-1].PostID)
+                            //MessageBox.Show($"{TempPost.PostID} == {AllPosts[AllPosts.Count - 1].PostID}");
+                            if (TempPost.PostID == AllPosts[AllPosts.Count - 1].PostID)
                             {
                                 MessageBox.Show("You already know");
                             }
@@ -532,6 +564,12 @@ namespace SocialMediaConcept
                     cnn.Close();
                 }
             }
+        }
+
+
+        private void RefreshFeedBTN_Click(object sender, EventArgs e)
+        {
+            refreshTimeline(null);
         }
     }
 }
