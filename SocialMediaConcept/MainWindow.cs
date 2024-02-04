@@ -57,7 +57,7 @@ namespace SocialMediaConcept
             PostInitilizer();
 
 
-            MessageBox.Show(AllPosts[AllPosts.Count-1].PostID.ToString());
+            //MessageBox.Show(AllPosts[AllPosts.Count-1].PostID.ToString());
         }
 
         private void SettingUpUser(string LoggedUser)
@@ -347,10 +347,12 @@ namespace SocialMediaConcept
             ImageDataUploaded = ms.ToArray();
             UserPosts newPost = new UserPosts(null, CurrentLoggedUser.UserID, ImageDataUploaded, CreateTitlePostTB.Text, "", 0, DateTime.Now);
 
+           
             using (SqlConnection cnn = new SqlConnection(connectionString))
             {
                 cnn.Open();
 
+                // Upload the post to the database
                 using (SqlCommand cmd = new SqlCommand("UploadPost", cnn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -367,7 +369,7 @@ namespace SocialMediaConcept
                     cmd.Dispose();
 
                 }
-
+                // Get the PostsID and append it to the Allposts list
                 using (SqlCommand cmd = new SqlCommand("PostIDReturn", cnn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -476,45 +478,54 @@ namespace SocialMediaConcept
             string TextInputted = Posts.PostTitle;
 
 
-            // Size of Post : 295, 202
-            Panel panel = new Panel();
-            panel.BackColor = Color.White;
-            panel.Size = new Size(260, 202);
-
-
-            // Like button
-            Button LikeButton = new Button();
-            LikeButton.BackColor = Color.HotPink;
-            LikeButton.Text = "Like";
-            LikeButton.Size = new Size(30, 30);
-            LikeButton.Location = new(215, 125);
-            LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, Posts.PostID);
+            Task.Run(() =>
+            {
 
 
 
-            // Title 
-            Label Title = new Label();
-            Title.Text = TextInputted;
-            Title.Location = new(9, 135);
-            Title.Size = new(196, 57);
+                // Size of Post : 295, 202
+                Panel panel = new Panel();
+                panel.BackColor = Color.White;
+                panel.Size = new Size(260, 202);
 
-            // Making the byte into an image. 
-            MemoryStream ms = new MemoryStream(Posts.PostPicture);
-            Image ConvertedImage = Image.FromStream(ms);
 
-            // PictureBox
-            PictureBox pictureBox = new PictureBox();
-            pictureBox.Location = new(5, 5);
-            pictureBox.Size = new Size(205, 125);
-            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox.BorderStyle = BorderStyle.Fixed3D;
-            pictureBox.Image = ConvertedImage;
+                // Like button
+                Button LikeButton = new Button();
+                LikeButton.BackColor = Color.HotPink;
+                LikeButton.Text = "Like";
+                LikeButton.Size = new Size(30, 30);
+                LikeButton.Location = new(215, 125);
+                LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, Posts.PostID);
 
-            panel.Controls.Add(LikeButton);
-            panel.Controls.Add(pictureBox);
-            panel.Controls.Add(Title);
-            TimelinePanel.Controls.Add(panel);
-            TimelinePanel.Controls.SetChildIndex(panel, 0);
+
+
+                // Title 
+                Label Title = new Label();
+                Title.Text = TextInputted;
+                Title.Location = new(9, 135);
+                Title.Size = new(196, 57);
+
+                // Making the byte into an image. 
+                MemoryStream ms = new MemoryStream(Posts.PostPicture);
+                Image ConvertedImage = Image.FromStream(ms);
+
+                // PictureBox
+                PictureBox pictureBox = new PictureBox();
+                pictureBox.Location = new(5, 5);
+                pictureBox.Size = new Size(205, 125);
+                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+                pictureBox.BorderStyle = BorderStyle.Fixed3D;
+                pictureBox.Image = ConvertedImage;
+
+                TimelinePanel.Invoke((MethodInvoker)delegate
+                {
+                    panel.Controls.Add(LikeButton);
+                    panel.Controls.Add(pictureBox);
+                    panel.Controls.Add(Title);
+                    TimelinePanel.Controls.Add(panel);
+                    TimelinePanel.Controls.SetChildIndex(panel, 0);
+                });
+            });
         }
 
         private void refreshTimeline(object state)
@@ -548,11 +559,9 @@ namespace SocialMediaConcept
                             //MessageBox.Show($"{TempPost.PostID} == {AllPosts[AllPosts.Count - 1].PostID}");
                             if (TempPost.PostID == AllPosts[AllPosts.Count - 1].PostID)
                             {
-                                MessageBox.Show("You already know");
                             }
                             else
                             {
-                                MessageBox.Show("MHH");
                                 ShareUserPostToTimeline(TempPost);
                                 AllPosts.Add(TempPost);
                             }
