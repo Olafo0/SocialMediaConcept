@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Windows.Forms;
 using System.Threading;
+using Microsoft.VisualBasic;
 
 namespace SocialMediaConcept
 {
@@ -283,15 +284,47 @@ namespace SocialMediaConcept
 
         private void LikeButton_Click(object? sender, EventArgs e, int? PostID)
         {
-            MessageBox.Show(PostID.ToString());
+            
             using (SqlConnection cnn = new SqlConnection(connectionString))
             {
+                int rows = 0;
+
+                Boolean postLikedByUser = false;
                 cnn.Open();
 
-                using (SqlCommand cmd = new SqlCommand("PostLiked", cnn))
+                using (SqlCommand cmd = new SqlCommand("LikeChecker", cnn))
                 {
+                    
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@GivenUserID", CurrentLoggedUser.UserID);
+                    cmd.Parameters.AddWithValue("@GivenPostID", PostID);
 
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            rows++;
+                        }
+                    }
+                    cmd.Dispose();
                 }
+
+                if (rows == 0)
+                {
+                    //using (SqlCommand cmd = new SqlCommand("PostLiked", cnn))
+                    //{
+                    //    cmd.CommandType = CommandType.StoredProcedure;
+                    //    cmd.Parameters.AddWithValue("@GivenPostID", PostID);
+                    //    cmd.Parameters.AddWithValue("@GivenUserID", CurrentLoggedUser.UserID);
+
+                    //    cmd.ExecuteNonQuery();
+                    //    cmd.Dispose();
+                    //}
+                }
+                else {
+                    MessageBox.Show($"Rows affected {rows}", "Note", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                cnn.Close();
             }
         }
 
@@ -421,7 +454,6 @@ namespace SocialMediaConcept
 
             if (e.KeyCode == Keys.Back && String.IsNullOrEmpty(CreateTitlePostTB.Text))
             {
-                MessageBox.Show("No :" + CreateTitlePostTB.Text.Length.ToString());
             }
             else if (e.KeyCode == Keys.Back && CreateTitlePostTB.Text.Length > 0)
             {
@@ -476,13 +508,10 @@ namespace SocialMediaConcept
         private void ShareUserPostToTimeline(UserPosts Posts)
         {
             string TextInputted = Posts.PostTitle;
-
+            
 
             Task.Run(() =>
             {
-
-
-
                 // Size of Post : 295, 202
                 Panel panel = new Panel();
                 panel.BackColor = Color.White;
@@ -496,8 +525,6 @@ namespace SocialMediaConcept
                 LikeButton.Size = new Size(30, 30);
                 LikeButton.Location = new(215, 125);
                 LikeButton.Click += (sender, e) => LikeButton_Click(sender, e, Posts.PostID);
-
-
 
                 // Title 
                 Label Title = new Label();
@@ -574,7 +601,6 @@ namespace SocialMediaConcept
                 }
             }
         }
-
 
         private void RefreshFeedBTN_Click(object sender, EventArgs e)
         {
